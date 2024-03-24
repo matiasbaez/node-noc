@@ -49,4 +49,20 @@ export class LogEntity {
         return log;
     }
 
+    static fromObject(object: { [key: string]: any }): LogEntity {
+        const { message, level, createdAt, origin } = object;
+
+        if (!message) throw new Error("message is required");
+        if (!level) throw new Error("level is required");
+
+        const log = new LogEntity({
+            message,
+            level,
+            createdAt,
+            origin
+        });
+
+        return log;
+    }
+
 }
