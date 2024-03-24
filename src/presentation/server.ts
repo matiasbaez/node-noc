@@ -2,6 +2,7 @@ import { CheckService } from "../domain/use-cases/checks/check-service";
 import { SendEMailLogs } from "../domain/use-cases/email/send-email-logs";
 import { FileSystemDataSource } from "../infraestructure/datasources/file-system.datasouce";
 import { MongoLogDataSource } from "../infraestructure/datasources/mongo-log.datasource";
+import { PostgresLogDataSource } from "../infraestructure/datasources/postgres-log.datasouce";
 import { LogRepositoryImpl } from "../infraestructure/repositories/log.repository.impl";
 import { CronService } from "./cron/cron-service";
 import { EmailService } from "./email/email.service";
@@ -10,8 +11,12 @@ const fileSystemRepository = new LogRepositoryImpl(
     new FileSystemDataSource()
 );
 
-const logRepository = new LogRepositoryImpl(
+const mongoLogRepository = new LogRepositoryImpl(
     new MongoLogDataSource()
+);
+
+const postgresLogRepository = new LogRepositoryImpl(
+    new PostgresLogDataSource()
 );
 
 const emailService = new EmailService();
@@ -39,24 +44,15 @@ export class Server {
 
         emailService.sendEmailWithFSLogs("matiasbaez2512@gmail.com");
 
-        // Use the file system logger
         CronService.createJob(
             '*/10 * * * * *',
             () => {
                 new CheckService(
-                    fileSystemRepository,
-                    () => console.log(`url is ok`),
-                    (error) => console.error(error),
-                ).execute('http://localhost:3000');
-            }
-        );
-
-        // Use mongo db to log
-        CronService.createJob(
-            '*/10 * * * * *',
-            () => {
-                new CheckService(
-                    logRepository,
+                    [
+                        fileSystemRepository,
+                        mongoLogRepository,
+                        postgresLogRepository,
+                    ],
                     () => console.log(`url is ok`),
                     (error) => console.error(error),
                 ).execute('http://localhost:3000');
