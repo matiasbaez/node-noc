@@ -13,6 +13,7 @@ export class MongoDataBase {
             await mongoose.connect(mongoUrl, {
                 dbName,
             });
+            return true;
         } catch(error) {
             throw error;
         }
